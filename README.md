@@ -31,7 +31,7 @@ Contributions are welcome! Whether it's adding new features, fixing bugs, or imp
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.
 
 ## Contact
-For any questions or suggestions, please feel free to contact me at my telegram [@dipen_IVII].
+For any questions or suggestions, please feel free to contact me at my telegram [@darshilgajera].
 
 ---
 
