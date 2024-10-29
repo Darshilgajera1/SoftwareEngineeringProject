@@ -1,10 +1,10 @@
 import re
 
 import requests
-from langchain.embeddings import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain.tools import tool
-from langchain.vectorstores import Chroma
+from langchain_community.vectorstores import Chroma
 import markdownify
 
 
