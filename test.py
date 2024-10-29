@@ -1,3 +1,6 @@
+import streamlit as st
+from streamlit_option_menu import option_menu
+st.set_page_config(page_title="PoolofTools", page_icon=":material/picture_as_pdf:")
 from langchain.callbacks import StreamingStdOutCallbackHandler
 from langchain_community.chat_models import ChatOpenAI, ChatOllama
 # from langchain_ollama import OllamaLLM
@@ -14,6 +17,9 @@ from tools.toolRegistration import tool_registration_tool, query_available_modul
 from tools.queryTool import tool_query_tool
 from tools.browsingTool import paged_web_browser
 from tools.liabraryInstallation import verify_and_install_library
+from tools import login
+from tools.home import home
+
 
 util.load_secrets()
 
@@ -55,10 +61,39 @@ tool_making_agent = MainAgentWithTools(name="ToolCreator",
                                                temperature=0.0,
                                                callbacks=[StreamingStdOutCallbackHandler()]),
                                            tools=tools)
+# tool_making_agent.receive("HumanUser", "can you please a create an tool that can create an bounding box around title(headers) of the image")
 
+# tool_making_agent.send()
 
-tool_making_agent.receive("HumanUser", "can you please a create an tool that can create an bounding box around title(headers) of the image")
+if 'log_in' not in st.session_state:
+    st.session_state['log_in'] = False
 
-tool_making_agent.send()
+class PdfBot:
+    def run():
+        with st.sidebar:
+            app = option_menu(
+                menu_title='PoolofTools',
+                options=['Home', 'My Tools', 'My Account'],
+                icons=['house-fill', 'chat-left-text-fill', 'files', 'person-circle'],
+                menu_icon='filetype-pdf',
+                default_index=0,
+                styles={
+                    "container": {"padding": "0!important", "background-color": "#333333"},
+                    "menu-icon": {"color": "white", "font-size":"34px"},
+                    "menu-title": {"font-size":"34px", "text-align": "center", "font-weight":"bold", "color": "white"},
+                    "icon": {"color": "white", "font-size": "22px"},
+                    "nav-link": {"font-size": "18px", "text-align": "left", "margin":"0px", "--hover-color": "#444444", "color": "white"},
+                    "nav-link-selected": {"background-color": "black"},
+                    "title": {"font-size":"24px", "color": "white"}
+                }
+            )
 
-print("Done")
+        # Navigation logic
+        if app == "Home":
+            home()
+        elif app == "My Tools":
+            pass
+        elif app == 'My Account':
+            login.account()
+
+    run()

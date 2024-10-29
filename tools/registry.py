@@ -1,6 +1,7 @@
 from langchain.schema import Document
-from langchain_huggingface import HuggingFaceEmbeddings
-from langchain.vectorstores import Chroma
+# from langchain_huggingface import HuggingFaceEmbeddings
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_community.vectorstores import Chroma
 
 import importlib.util
 import os
