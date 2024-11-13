@@ -180,7 +180,7 @@ def main():
     if 'logged_in' not in st.session_state:
         st.session_state.logged_in = False
     if 'page' not in st.session_state:
-        st.session_state['page'] = ""
+        st.session_state['page'] = "home"
 
     # Load secrets
     util.load_secrets()
@@ -206,7 +206,7 @@ def main():
                              icons=['house', 'account'],
                              menu_icon="cast", default_index=0)
 
-    if choose == "Home" and st.session_state['page'] == 'home':
+    if choose == 'home' or st.session_state['page'] == 'home':
         home()
     elif st.session_state['page'] == 'interaction_page':
         interaction_page()
