@@ -15,9 +15,9 @@ from email.mime.text import MIMEText
 
 load_dotenv()
 
-if not firebase_admin._apps:
-    cred = credentials.Certificate(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
-    firebase_admin.initialize_app(cred)
+# if not firebase_admin._apps:
+#     cred = credentials.Certificate(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+#     firebase_admin.initialize_app(cred)
 
 reset_codes = {}
 
