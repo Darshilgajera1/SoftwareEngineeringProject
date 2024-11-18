@@ -64,36 +64,3 @@ tool_making_agent = MainAgentWithTools(name="ToolCreator",
 # tool_making_agent.receive("HumanUser", "can you please a create an tool that can create an bounding box around title(headers) of the image")
 
 # tool_making_agent.send()
-
-# if 'log_in' not in st.session_state:
-#     st.session_state['log_in'] = False
-#
-# class PdfBot:
-#     def run():
-#         with st.sidebar:
-#             app = option_menu(
-#                 menu_title='PoolofTools',
-#                 options=['Home', 'My Tools', 'My Account'],
-#                 icons=['house-fill', 'chat-left-text-fill', 'files', 'person-circle'],
-#                 menu_icon='filetype-pdf',
-#                 default_index=0,
-#                 styles={
-#                     "container": {"padding": "0!important", "background-color": "#333333"},
-#                     "menu-icon": {"color": "white", "font-size":"34px"},
-#                     "menu-title": {"font-size":"34px", "text-align": "center", "font-weight":"bold", "color": "white"},
-#                     "icon": {"color": "white", "font-size": "22px"},
-#                     "nav-link": {"font-size": "18px", "text-align": "left", "margin":"0px", "--hover-color": "#444444", "color": "white"},
-#                     "nav-link-selected": {"background-color": "black"},
-#                     "title": {"font-size":"24px", "color": "white"}
-#                 }
-#             )
-#
-#         # Navigation logic
-#         if app == "Home":
-#             home()
-#         elif app == "My Tools":
-#             pass
-#         elif app == 'My Account':
-#             login.account()
-#
-#     run()
