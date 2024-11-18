@@ -383,6 +383,9 @@ def home():
 
 
 def interaction_page():
+    # Reset the submitted state when the page loads
+    if 'submitted' in st.session_state:
+        st.session_state['submitted'] = False
 
     # Page Title
     st.markdown("<h1>🤖 Interact with the Pool of Tools</h1>", unsafe_allow_html=True)
@@ -397,50 +400,51 @@ def interaction_page():
     with col2:
         file_name = ""
         with st.form("User Input Form"):
-                prompt = st.text_input(
-                    "Enter your prompt:",
-                    placeholder="E.g., Analyze this document or generate a financial report...",
-                    help="Provide a specific prompt to get the best results.",
-                    key="prompt_input"
-                )
+            prompt = st.text_input(
+                "Enter your prompt:",
+                placeholder="E.g., Analyze this document or generate a financial report...",
+                help="Provide a specific prompt to get the best results.",
+                key="prompt_input"
+            )
 
-                st.markdown("<h3 style='text-align: center;'>📁 Upload your files</h3>", unsafe_allow_html=True)
-                uploaded_file = st.file_uploader("Choose an image, video, or PDF file (optional)", type=["jpg", "jpeg", "png", "mp4", "pdf"])
+            st.markdown("<h3 style='text-align: center;'>📁 Upload your files</h3>", unsafe_allow_html=True)
+            uploaded_file = st.file_uploader("Choose an image, video, or PDF file (optional)", type=["jpg", "jpeg", "png", "mp4", "pdf"])
 
-                submit_button = st.form_submit_button(label="🚀 Submit")
+            submit_button = st.form_submit_button(label="🚀 Submit")
 
-                if submit_button:
-                    st.session_state['prompt'] = prompt
-                    st.session_state['uploaded_file'] = uploaded_file
-                    st.session_state['submitted'] = True
+            if submit_button:
+                st.session_state['prompt'] = prompt
+                st.session_state['uploaded_file'] = uploaded_file
+                st.session_state['submitted'] = True
 
         if st.session_state.get('submitted', False):
             prompt = st.session_state['prompt']
             uploaded_file = st.session_state['uploaded_file']
             file_name = uploaded_file.name if uploaded_file else ""
-                # Process uploaded files
+
+            # Process uploaded files
             if uploaded_file is not None:
                 file_name = uploaded_file.name
                 file_path = os.path.join("inputs", file_name)
 
-            # Save the file to the inputs directory
-            try:
-                with open(file_path, "wb") as f:
-                    f.write(uploaded_file.getbuffer())
-            except Exception as e:
-                st.error(f"An error occurred: {e}")
+                # Save the file to the inputs directory
+                try:
+                    with open(file_path, "wb") as f:
+                        f.write(uploaded_file.getbuffer())
+                except Exception as e:
+                    st.error(f"An error occurred: {e}")
 
-            st.success(f"File {file_name} saved to inputs directory.")
+                st.success(f"File {file_name} saved to inputs directory.")
 
-        # Pass the file to the tool making agent for further processing
-        tool_making_agent.receive("HumanUser", f"{prompt}.Process this file: {file_name}")
-        response = tool_making_agent.send()
+            # Pass the file to the tool making agent for further processing
+            tool_making_agent.receive("HumanUser", f"{prompt}.Process this file: {file_name}")
+            response = tool_making_agent.send()
 
-        with st.spinner("🤖 Processing your request..."):
-            st.success(f"✅ Response for your prompt: '{prompt}'")
+            with st.spinner("🤖 Processing your request..."):
+                st.success(f"✅ Response for your prompt: '{prompt}'")
 
-        st.success(f"Output for {file_name} saved to outputs directory.")
-        st.markdown(f"📄 **Output:** {response}")
+            st.success(f"Output for {file_name} saved to outputs directory.")
+            st.markdown(f"📄 **Output:** {response}")
 
     # Additional styling and spacing for better appearance
     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -450,28 +454,29 @@ def interaction_page():
 
 
 def main():
-    # Initialize session state for login and chat interface
     if 'log_in' not in st.session_state:
         st.session_state.log_in = False
     if 'page' not in st.session_state:
         st.session_state['page'] = "home"
 
-    # If not logged in, show only login page
     if not st.session_state.log_in:
         build_login_ui()
 
-    if st.session_state.log_in and st.session_state['page'] == 'home':
+    # Navigation logic for logged-in users
+    if st.session_state.log_in:
         with st.sidebar:
-            choose = option_menu("Menu", ["Home"],
-                                 icons=['house'],
+            choose = option_menu("Menu", ["Home", "Interaction"],
+                                 icons=['house', 'robot'],
                                  menu_icon="cast", default_index=0)
 
             if st.button("Logout"):
                 st.session_state.log_in = False
-                st.rerun()
+                st.experimental_rerun()
 
-        if choose == 'home' or st.session_state['page'] == 'home':
+        if st.session_state['page'] == 'home':
             home()
+        elif st.session_state['page'] == 'interaction_page':
+            interaction_page()
 
 # Set the page flags
 def set_login():
@@ -482,7 +487,6 @@ def set_home_page():
 
 def set_interaction_page():
     st.session_state['page'] = 'interaction_page'
-    interaction_page()
 
 def set_account_page():
     st.session_state['page'] = 'account'
