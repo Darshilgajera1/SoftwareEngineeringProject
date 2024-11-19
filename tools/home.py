@@ -73,6 +73,11 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+def process_request(prompt):
+    print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>prompt",prompt)
+    pass
+
+
 # Main interaction page
 def interaction_page():
     # Page Title
@@ -104,8 +109,9 @@ def interaction_page():
         if submit_button:
             if prompt:
                 # Simulate processing time for better UX
-                with st.spinner("🤖 Processing your request..."):
-                    st.success(f"✅ Response for your prompt: '{prompt}'")
+                # with st.spinner("🤖 Processing your request..."):
+                result = process_request(prompt)
+                # st.success(f"✅ Response for your prompt: '{prompt}'")
             else:
                 st.error("❌ Please enter a valid prompt before submitting.")
 
