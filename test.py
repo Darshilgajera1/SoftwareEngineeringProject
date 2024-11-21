@@ -61,39 +61,51 @@ tool_making_agent = MainAgentWithTools(name="ToolCreator",
                                                temperature=0.0,
                                                callbacks=[StreamingStdOutCallbackHandler()]),
                                            tools=tools)
-# tool_making_agent.receive("HumanUser", "can you please a create an tool that can create an bounding box around title(headers) of the image")
+tool_making_agent.receive("HumanUser", "create an tool which can convert pdf into images")
 
-# tool_making_agent.send()
+tool_making_agent.send()
 
-if 'log_in' not in st.session_state:
-    st.session_state['log_in'] = False
+# # Set session state for login status if not already set
+# if 'logged_in' not in st.session_state:
+#     st.session_state['logged_in'] = False  # Default to False if not logged in
 
-class PdfBot:
-    def run():
-        with st.sidebar:
-            app = option_menu(
-                menu_title='PoolofTools',
-                options=['Home', 'My Tools', 'My Account'],
-                icons=['house-fill', 'chat-left-text-fill', 'files', 'person-circle'],
-                menu_icon='filetype-pdf',
-                default_index=0,
-                styles={
-                    "container": {"padding": "0!important", "background-color": "#333333"},
-                    "menu-icon": {"color": "white", "font-size":"34px"},
-                    "menu-title": {"font-size":"34px", "text-align": "center", "font-weight":"bold", "color": "white"},
-                    "icon": {"color": "white", "font-size": "22px"},
-                    "nav-link": {"font-size": "18px", "text-align": "left", "margin":"0px", "--hover-color": "#444444", "color": "white"},
-                    "nav-link-selected": {"background-color": "black"},
-                    "title": {"font-size":"24px", "color": "white"}
-                }
-            )
+# # Function to handle user login or redirect to the home page
+# def handle_login():
+#     print("st.session_state['logged_in']",st.session_state['logged_in'])
+#     if not st.session_state['logged_in']:
+#         login.login_page()  # This function should handle login and set st.session_state['logged_in'] = True
+#     else:
+#         home()  # This function should display the home page once logged in
 
-        # Navigation logic
-        if app == "Home":
-            home()
-        elif app == "My Tools":
-            pass
-        elif app == 'My Account':
-            login.account()
+# # Run the login/home page logic
+# handle_login()
 
-    run()
+# class PdfBot:
+#     def run():
+#         with st.sidebar:
+#             app = option_menu(
+#                 menu_title='PoolofTools',
+#                 options=['Home', 'My Tools', 'My Account'],
+#                 icons=['house-fill', 'chat-left-text-fill', 'files', 'person-circle'],
+#                 menu_icon='filetype-pdf',
+#                 default_index=0,
+#                 styles={
+#                     "container": {"padding": "0!important", "background-color": "#333333"},
+#                     "menu-icon": {"color": "white", "font-size":"34px"},
+#                     "menu-title": {"font-size":"34px", "text-align": "center", "font-weight":"bold", "color": "white"},
+#                     "icon": {"color": "white", "font-size": "22px"},
+#                     "nav-link": {"font-size": "18px", "text-align": "left", "margin":"0px", "--hover-color": "#444444", "color": "white"},
+#                     "nav-link-selected": {"background-color": "black"},
+#                     "title": {"font-size":"24px", "color": "white"}
+#                 }
+#             )
+
+#         # Navigation logic
+#         if app == "Home":
+#             home()
+#         elif app == "My Tools":
+#             pass
+#         elif app == 'My Account':
+#             login.account()
+
+#     run()

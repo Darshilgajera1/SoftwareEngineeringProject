@@ -107,6 +107,7 @@ class SelfModifiableAgentExecutor(AgentExecutor):
         output = self.agent.return_stopped_response(
             self.early_stopping_method, intermediate_steps, **inputs
         )
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>finish")
         return self._return(output, intermediate_steps, run_manager=run_manager)
 
 class MainAgentWithTools(MainAgent):
