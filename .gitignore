@@ -53,4 +53,4 @@ target/
 __pypackages__/
 
 .idea/
-/secrets.json
+secrets.json/
