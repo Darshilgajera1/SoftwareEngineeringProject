@@ -53,4 +53,5 @@ target/
 __pypackages__/
 
 .idea/
-/secrets.json
+secrets.json
+pooloftools-e25db-firebase-adminsdk-8wnl2-7caf8daaa5.json
