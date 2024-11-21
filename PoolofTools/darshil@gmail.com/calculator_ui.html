@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Calculator</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; }
+        input, select { margin: 5px; padding: 10px; width: 100px; }
+        button { padding: 10px; }
+        #result { margin-top: 20px; font-size: 1.5em; }
+    </style>
+</head>
+<body>
+    <h1>Simple Calculator</h1>
+    <input type="number" id="num1" placeholder="Number 1">
+    <input type="number" id="num2" placeholder="Number 2">
+    <select id="operation">
+        <option value="add">Add</option>
+        <option value="subtract">Subtract</option>
+        <option value="multiply">Multiply</option>
+        <option value="divide">Divide</option>
+    </select>
+    <button onclick="calculate()">Calculate</button>
+    <div id="result"></div>
+    <script>
+        function calculate() {
+            const num1 = parseFloat(document.getElementById('num1').value);
+            const num2 = parseFloat(document.getElementById('num2').value);
+            const operation = document.getElementById('operation').value;
+            let result;
+            fetch(`calculator.py?operation=${operation}&num1=${num1}&num2=${num2}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('result').innerText = 'Result: ' + data;
+                });
+        }
+    </script>
+</body>
+</html>
