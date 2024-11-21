@@ -53,4 +53,4 @@ target/
 __pypackages__/
 
 .idea/
-secrets.json/.DS_Store
+secrets.json/
