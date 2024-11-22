@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image to PDF Converter</title>
+    <style>
+        body {
+            background-color: white;
+            font-family: Arial, sans-serif;
+            padding: 20px;
+        }
+        #uploadForm {
+            margin-bottom: 20px;
+        }
+        #loading {
+            display: none;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Image to PDF Converter</h1>
+    <form id="uploadForm">
+        <input type="file" id="imageInput" accept="image/*" multiple required>
+        <button type="submit">Convert to PDF</button>
+    </form>
+    <div id="loading">Converting... Please wait.</div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.4.0/jspdf.umd.min.js"></script>
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+            const files = document.getElementById('imageInput').files;
+            if (files.length === 0) return;
+            document.getElementById('loading').style.display = 'block';
+            const { jsPDF } = window.jspdf;
+            const pdf = new jsPDF();
+            let promises = [];
+            Array.from(files).forEach((file, index) => {
+                const reader = new FileReader();
+                promises.push(new Promise((resolve) => {
+                    reader.onload = function(e) {
+                        const imgData = e.target.result;
+                        pdf.addImage(imgData, 'JPEG', 10, 10 + (index * 100), 180, 160);
+                        resolve();
+                    };
+                    reader.readAsDataURL(file);
+                }));
+            });
+            Promise.all(promises).then(() => {
+                pdf.save('converted.pdf');
+                document.getElementById('loading').style.display = 'none';
+            });
+        });
+    </script>
+</body>
+</html>
