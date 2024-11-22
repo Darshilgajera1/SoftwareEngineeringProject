@@ -588,11 +588,7 @@ def main():
                 st.session_state.log_in = False
                 st.session_state['uploaded_files'] = False  # Reset the upload flag
                 logging.info("User logged out.")
-<<<<<<< HEAD
-                st.experimental_rerun()
-=======
                 logout_widget()
->>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
 
         # Render the corresponding page based on the selected menu option
         if st.session_state['page'] == 'Home':
