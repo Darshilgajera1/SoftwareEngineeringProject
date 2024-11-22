@@ -61,16 +61,11 @@ tool_making_agent = MainAgentWithTools(name="ToolCreator",
                                                temperature=0.0,
                                                callbacks=[StreamingStdOutCallbackHandler()]),
                                            tools=tools)
-<<<<<<< HEAD
-# tool_making_agent.receive("HumanUser", "can you please a create an tool that can create an bounding box around title(headers) of the image")
-
-# tool_making_agent.send()
 
 if 'log_in' not in st.session_state:
     st.session_state['log_in'] = False
-=======
+
 tool_making_agent.receive("HumanUser", "create an tool which can convert pdf into images")
->>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
 
 class PdfBot:
     def run():
