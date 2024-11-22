@@ -1,33 +1,35 @@
+from datetime import datetime, timedelta
+import os
+import random
+import re
+import string
+import sys
+import json
+import logging
+import smtplib
+from email.mime.text import MIMEText
+
+import requests
 import streamlit as st
+import streamlit.components.v1 as components
+from firebase_admin import credentials, auth, firestore
+import firebase_admin
+
 from langchain_community.agent_toolkits import FileManagementToolkit
 from langchain_community.chat_models import ChatOpenAI
 from langchain_community.utilities import GoogleSearchAPIWrapper
 from langchain_core.callbacks import StreamingStdOutCallbackHandler
 from langchain_core.tools import Tool
 from streamlit_option_menu import option_menu
-import sys
-import os
-import re
-import json
-import requests
-import firebase_admin
-import logging
-from firebase_admin import credentials, auth, storage, firestore
-import random
-import string
-from datetime import datetime, timedelta
-import smtplib
-from email.mime.text import MIMEText
-import os
-import subprocess
-import streamlit as st
+
 import util
-from streamlit_option_menu import option_menu
-import streamlit.components.v1 as components
 from main import MainAgentWithTools
 from prompt import TOOL_MAKER_PROMPT
-from tools import verify_and_install_library, tool_query_tool, tool_registration_tool, query_available_modules, \
-    paged_web_browser
+from tools import (
+    verify_and_install_library,
+    query_available_modules,
+    paged_web_browser,
+)
 
 util.load_secrets()
 
@@ -249,8 +251,21 @@ def sign_up_widget() -> None:
         register_button = st.form_submit_button(label='Register')
 
         if register_button:
-            register_user(name_sign_up, email_sign_up, username_sign_up, password_sign_up)
-            st.success("Registration Successful!")
+            if check_name(name_sign_up) and check_email(email_sign_up) and check_username(
+                    username_sign_up) and check_uniq_username(username_sign_up) and check_uniq_email(email_sign_up):
+                register_user(name_sign_up, email_sign_up, username_sign_up, password_sign_up)
+                st.success("Registration Successful!")
+            else:
+                if not check_name(name_sign_up):
+                    st.error("Invalid name. Please enter a valid name.")
+                elif not check_email(email_sign_up):
+                    st.error("Invalid email. Please enter a valid email.")
+                elif not check_username(username_sign_up):
+                    st.error("Invalid username. Please enter a valid username.")
+                elif not check_uniq_username(username_sign_up):
+                    st.error("Username already taken. Please choose a different username.")
+                elif not check_uniq_email(email_sign_up):
+                    st.error("Email already registered. Please use a different email.")
 
 def logout_widget() -> None:
     if st.session_state['log_in']:
@@ -387,7 +402,6 @@ def home():
     """)
 
     st.markdown("<br>", unsafe_allow_html=True)
-
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
         if st.button("Let's get started!", key='get_started', on_click=set_interaction_page):
@@ -409,7 +423,6 @@ def interaction_page():
 
     col1, col2, col3 = st.columns([0.25, 1.5, 0.25])  # Adjust columns for better centering and full-width input
     with col2:
-        file_name = ""
         with st.form("User Input Form"):
             prompt = st.text_input(
                 "Enter your prompt:",
@@ -418,35 +431,14 @@ def interaction_page():
                 key="prompt_input"
             )
 
-            st.markdown("<h3 style='text-align: center;'>📁 Upload your files</h3>", unsafe_allow_html=True)
-            uploaded_file = st.file_uploader("Choose an image, video, or PDF file (optional)", type=["jpg", "jpeg", "png", "mp4", "pdf"])
-
             submit_button = st.form_submit_button(label="🚀 Submit")
 
             if submit_button:
                 st.session_state['prompt'] = prompt
-                st.session_state['uploaded_file'] = uploaded_file
                 st.session_state['submitted'] = True
 
         if st.session_state.get('submitted', False):
             prompt = st.session_state['prompt']
-            uploaded_file = st.session_state['uploaded_file']
-            file_name = uploaded_file.name if uploaded_file else ""
-
-            # Process uploaded files
-            if uploaded_file is not None:
-                file_name = uploaded_file.name
-                file_path = os.path.join("inputs", file_name)
-
-                # Save the file to the inputs directory
-                try:
-                    with open(file_path, "wb") as f:
-                        f.write(uploaded_file.getbuffer())
-                except Exception as e:
-                    st.error(f"An error occurred: {e}")
-
-                st.success(f"File {file_name} saved to inputs directory.")
-                
 
             # Pass the file to the tool making agent for further processing
             file_path = os.path.join("PoolOfTools", st.session_state['user_email'])
@@ -461,7 +453,6 @@ def interaction_page():
             with st.spinner("🤖 Processing your request..."):
                 st.success(f"✅ Response for your prompt: '{prompt}'")
 
-            st.success(f"Output for {file_name} saved to outputs directory.")
             st.markdown(f"📄 **Output:** {response}")
 
     # Additional styling and spacing for better appearance
@@ -488,7 +479,7 @@ def display_tools(user_uid):
             html_files = [f for f in os.listdir(user_tools_folder) if f.endswith('.html')]
 
             if html_files:
-                st.write(f"### Tools available for user: {user_uid}")
+                st.write(f"### Tools available for user: {st.session_state['user_name']}")
                 logging.info(f"HTML files found for user '{user_uid}': {html_files}")
 
                 for tool in html_files:
@@ -505,7 +496,14 @@ def display_tools(user_uid):
                 st.write("No HTML files found in your tools folder.")
                 logging.info(f"No HTML files found in the tools folder for user '{user_uid}'.")
         else:
-            st.write("Your tools folder does not exist.")
+            st.markdown(
+                """
+                <div style="padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; font-family: Arial, sans-serif;">
+                    <strong>🚨 No tools have been created by you yet.</strong><br>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
             logging.info(f"Tools folder does not exist for user '{user_uid}'.")
     except Exception as e:
         st.error(f"Error displaying tools: {e}")
@@ -557,10 +555,8 @@ def main():
         st.session_state.log_in = False
         logging.info("User session initialized with logged-out state.")
     if 'page' not in st.session_state:
-        st.session_state['page'] = "home"
+        st.session_state['page'] = "Home"
         logging.info("Default page set to 'home'.")
-    if 'uploaded_files' not in st.session_state:
-        st.session_state['uploaded_files'] = False  # Flag to check if files are uploaded
 
     # Display login UI if the user is not logged in
     if not st.session_state.log_in:
@@ -606,7 +602,7 @@ def set_login():
     st.session_state['log_in'] = True
 
 def set_home_page():
-    st.session_state['page'] = 'home'
+    st.session_state['page'] = 'Home'
 
 def set_interaction_page():
     st.session_state['page'] = 'Interaction'
