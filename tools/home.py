@@ -73,12 +73,16 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
+<<<<<<< HEAD
 def process_request(prompt):
     print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>prompt",prompt)
     pass
 
 
 # Main interaction page
+=======
+
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
 def interaction_page():
     # Page Title
     st.markdown("<h1>🤖 Interact with the Pool of Tools</h1>", unsafe_allow_html=True)
@@ -89,9 +93,15 @@ def interaction_page():
     # Centered input prompt with larger text and padding for better visual appearance
     st.markdown("<h3 style='text-align: center;'>📝 What's your task for the Pool of Tools?</h3>", unsafe_allow_html=True)
 
+<<<<<<< HEAD
     col1, col2, col3 = st.columns([0.25, 1.5, 0.25])  # Adjust columns for better centering and full-width input
     with col2:
         # Better-looking text input with a larger font size and full-width style
+=======
+    # Input prompt centered in a column
+    col1, col2, col3 = st.columns([0.25, 1, 0.25])  # Adjust columns for better centering and full-width input
+    with col2:
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
         prompt = st.text_input(
             "Enter your prompt:",
             placeholder="E.g., Analyze this document or generate a financial report...",
@@ -100,18 +110,35 @@ def interaction_page():
 
     st.markdown("<br>", unsafe_allow_html=True)  # Adds some space after input
 
+<<<<<<< HEAD
     # Align Submit and Go Back buttons in a row, adding custom button styles
     col1, col2, col3 = st.columns([0.25, 1.5, 0.25])  # Adjust column widths for centering buttons
 
+=======
+    # Always display Submit and Go Back buttons
+    col1, col2, col3 = st.columns([0.25, 1, 0.25])  # Adjust column widths for centering buttons
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
     with col2:
         # Submit Button
         submit_button = st.button("🚀 Submit", key="submit")
         if submit_button:
+<<<<<<< HEAD
             if prompt:
                 # Simulate processing time for better UX
                 # with st.spinner("🤖 Processing your request..."):
                 result = process_request(prompt)
                 # st.success(f"✅ Response for your prompt: '{prompt}'")
+=======
+            if prompt:  # Ensure the prompt is not empty
+                st.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:",result)
+                print(">>>>>>>>>>>>>>>>>",result)
+                # Display a spinner while processing the request
+                with st.spinner("🤖 Processing your request..."):
+                    result = process_request(prompt)  # Call the function with the prompt
+                    # Display the result after processing
+                    st.success(f"✅ Response for your prompt: {result}")
+                    st.write(f"Response: {result}")
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
             else:
                 st.error("❌ Please enter a valid prompt before submitting.")
 
@@ -126,7 +153,16 @@ def interaction_page():
     # Footer
     st.markdown("<h4>Powered by Pool of Tools</h4>", unsafe_allow_html=True)
 
+<<<<<<< HEAD
 
+=======
+def process_request(prompt):
+    st.write(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>:",result)
+    print(">>>>>>>>>>>>>>>>>",result)
+    # This is a placeholder for the actual logic of processing the prompt
+    # Replace this with the actual code that handles the prompt
+    return f"Processed result for: {prompt}"  # Example response
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
 
 def home():
     st.title("Welcome to :red[PoolofTools]")

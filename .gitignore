@@ -53,7 +53,10 @@ target/
 __pypackages__/
 
 .idea/
+<<<<<<< HEAD
 secrets.json/secrets.json
 pooloftools-e25db-firebase-adminsdk-8wnl2-7caf8daaa5.json
+=======
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
 secrets.json
 pooloftools-e25db-firebase-adminsdk-8wnl2-7caf8daaa5.json

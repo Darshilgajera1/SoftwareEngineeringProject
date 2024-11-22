@@ -144,7 +144,11 @@ tool_making_agent = MainAgentWithTools(name="ToolCreator",
 
 if not firebase_admin._apps:
     print("###########################   Initializing Firebase Admin SDK...")
+<<<<<<< HEAD
     cred = credentials.Certificate("pooloftools-e25db-firebase-adminsdk-8wnl2-7caf8daaa5.json")
+=======
+    cred = credentials.Certificate(os.getenv("FIREBASE_CREDENTIALS_PATH"))
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
     firebase_admin.initialize_app(cred, {
         'projectId': os.getenv("GOOGLE_CLOUD_PROJECT"),
     })
@@ -588,7 +592,11 @@ def main():
                 st.session_state.log_in = False
                 st.session_state['uploaded_files'] = False  # Reset the upload flag
                 logging.info("User logged out.")
+<<<<<<< HEAD
                 st.experimental_rerun()
+=======
+                logout_widget()
+>>>>>>> 9ee291dd07920efb160000191c4b3fd75fa73982
 
         # Render the corresponding page based on the selected menu option
         if st.session_state['page'] == 'Home':
