@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Translation Tool</title>
+    <style>
+        body { background-color: white; font-family: Arial, sans-serif; }
+        .container { max-width: 600px; margin: auto; padding: 20px; }
+        .input-area { margin-bottom: 20px; }
+        .submit-btn { padding: 10px 20px; background-color: #007BFF; color: white; border: none; cursor: pointer; }
+        .submit-btn:hover { background-color: #0056b3; }
+        .output { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Translation Tool</h1>
+        <div class="input-area">
+            <textarea id="textInput" rows="4" placeholder="Enter text to translate..." style="width: 100%;"></textarea>
+            <select id="languageSelect">
+                <option value="es">Spanish</option>
+                <option value="ru">Russian</option>
+            </select>
+            <button class="submit-btn" onclick="translateText()">Translate</button>
+        </div>
+        <div class="output" id="outputArea"></div>
+    </div>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script>
+        async function translateText() {
+            const text = document.getElementById('textInput').value;
+            const targetLanguage = document.getElementById('languageSelect').value;
+            const response = await fetch('https://api-inference.huggingface.co/models/Helsinki-NLP/opus-mt-en-' + targetLanguage, {
+                method: 'POST',
+                headers: {
+                    'Authorization': 'Bearer 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',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify({ inputs: text })
+            });
+            const result = await response.json();
+            const translatedText = result[0].translation_text;
+            document.getElementById('outputArea').innerHTML = `<p>${translatedText}</p>`;
+            speakText(translatedText);
+        }
+
+        function speakText(text) {
+            const speech = new SpeechSynthesisUtterance(text);
+            speech.lang = document.getElementById('languageSelect').value === 'es' ? 'es-ES' : 'ru-RU';
+            window.speechSynthesis.speak(speech);
+        }
+    </script>
+</body>
+</html>

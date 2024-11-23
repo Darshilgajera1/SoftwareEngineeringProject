@@ -461,12 +461,6 @@ def home():
         unsafe_allow_html=True,
     )
 
-    # Add a visually appealing call-to-action
-    st.markdown("<br>", unsafe_allow_html=True)
-    col1, col2, col3 = st.columns([1, 2, 1])
-    with col2:
-        st.button("🌟 Let's Get Started! 🌟", on_click=set_interaction_page)
-
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -564,16 +558,20 @@ def display_tools(user_uid):
                 st.write(f"### Tools available for user: {st.session_state['user_name']}")
                 logging.info(f"HTML files found for user '{user_uid}': {html_files}")
 
-                for tool in html_files:
+                cols = st.columns(3)
+                for i, tool in enumerate(html_files):
                     # Construct the full path to the tool
                     tool_path = os.path.join(user_tools_folder, tool)
 
                     # Create a button to load and display the HTML content
-                    if st.button(f"Run {tool}"):
-                        # Read and display the HTML content
-                        with open(tool_path, "r") as file:
-                            html_content = file.read()
-                        components.html(html_content, height=600)
+                    tool_name = os.path.splitext(tool)[0].replace('_', " ").title()  # Get the tool name without extension
+                    col = cols[i % 3]
+                    with col:
+                        if st.button(f"Run {tool_name}"):
+                            # Read and display the HTML content
+                            with open(tool_path, "r") as file:
+                                html_content = file.read()
+                            components.html(html_content, height=600)
             else:
                 st.write("No HTML files found in your tools folder.")
                 logging.info(f"No HTML files found in the tools folder for user '{user_uid}'.")
