@@ -1,20 +1,19 @@
-from datetime import datetime, timedelta
+import json
+import logging
 import os
 import random
 import re
+import smtplib
 import string
 import sys
-import json
-import logging
-import smtplib
+from datetime import datetime, timedelta
 from email.mime.text import MIMEText
 
+import firebase_admin
 import requests
 import streamlit as st
 import streamlit.components.v1 as components
 from firebase_admin import credentials, auth, firestore
-import firebase_admin
-
 from langchain_community.agent_toolkits import FileManagementToolkit
 from langchain_community.chat_models import ChatOpenAI
 from langchain_community.utilities import GoogleSearchAPIWrapper
@@ -119,8 +118,10 @@ file_tools = FileManagementToolkit(
 # initialie search API
 search = GoogleSearchAPIWrapper()
 
+
 def top10_results(query):
     return search.results(query, 10)
+
 
 GoogleSearchTool = Tool(
     name="Google Search",
@@ -138,10 +139,10 @@ tools = [GoogleSearchTool,
 tool_making_agent = MainAgentWithTools(name="ToolCreator",
                                        system_message=system_prompt_scribe,
                                        model=ChatOpenAI(
-                                       model_name='gpt-4o-mini',
-                                       streaming=True,
-                                       temperature=0.0,
-                                       callbacks=[StreamingStdOutCallbackHandler()]),
+                                           model_name='gpt-4o-mini',
+                                           streaming=True,
+                                           temperature=0.0,
+                                           callbacks=[StreamingStdOutCallbackHandler()]),
                                        tools=tools)
 
 if not firebase_admin._apps:
@@ -155,11 +156,13 @@ db = firestore.client()
 
 reset_codes = {}
 
+
 def generate_reset_code(email):
     code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
     expiry_time = datetime.now() + timedelta(minutes=10)
     reset_codes[email] = {'code': code, 'expiry': expiry_time}
     return code
+
 
 def send_email(recipient, subject, body):
     sender = os.getenv("EMAIL")
@@ -178,48 +181,60 @@ def send_email(recipient, subject, body):
     except Exception as e:
         st.error(f"Failed to send email: {e}")
 
+
 def send_reset_code_email(email):
     code = generate_reset_code(email)
     send_email(email, "Your Password Reset Code", f"Your reset code is: {code}")
+
 
 def account():
     st.title('Welcome' + st.session_state.get('user_name', ''))
     build_login_ui()
 
+
 def check_name(name_sign_up: str) -> bool:
     name_regex = (r'^[A-Za-z_][A-Za-z0-9_]*')
     return bool(re.search(name_regex, name_sign_up))
+
 
 def check_email(email_sign_up: str) -> bool:
     regex = re.compile(r'([A-Za-z0-9]+[.-_])*[A-Za-z0-9]+@[A-Za-z0-9-]+(\.[A-Z|a-z]{2,})+')
     return bool(re.fullmatch(regex, email_sign_up))
 
+
 def check_username(username_sign_up: str) -> bool:
     regex = re.compile(r'^[a-zA-Z0-9_.-]+$')
     return bool(re.match(regex, username_sign_up))
+
 
 def check_uniq_email(email_sign_up: str) -> bool:
     all_users = auth.list_users().users
     return not any(user.email == email_sign_up for user in all_users)
 
+
 def check_uniq_username(username_sign_up: str) -> bool:
     all_users = auth.list_users().users
     return not any(user.uid == username_sign_up for user in all_users)
+
 
 def sign_in_with_email_and_password(user_name: str, password: str, return_secure_token=True) -> dict:
     st.session_state['Firebase_API_key'] = os.getenv("FIREBASE_WEB_API")
     payload = json.dumps({"email": user_name, "password": password, "returnSecureToken": return_secure_token})
     rest_api_url = "https://identitytoolkit.googleapis.com/v1/accounts:signInWithPassword"
-    response = requests.post(rest_api_url, params={"key": st.session_state['Firebase_API_key']}, headers={"Content-Type": "application/json"}, data=payload)
+    response = requests.post(rest_api_url, params={"key": st.session_state['Firebase_API_key']},
+                             headers={"Content-Type": "application/json"}, data=payload)
     if response.status_code == 200:
         return response.json()
     else:
         st.error(f"Failed to sign in: {response.json().get('error', {}).get('message', 'Unknown error')}")
         return None
 
+
 def register_user(name_sign_up: str, email_sign_up: str, username_sign_up: str, password_sign_up: str) -> bool:
-    user = auth.create_user(display_name=name_sign_up, email=email_sign_up, password=password_sign_up, uid=username_sign_up)
+    user = auth.create_user(display_name=name_sign_up, email=email_sign_up, password=password_sign_up,
+                            uid=username_sign_up)
     return bool(user.uid)
+
 
 def login_page() -> None:
     with st.form("Login form"):
@@ -239,6 +254,7 @@ def login_page() -> None:
                 st.rerun()
             else:
                 st.error('Please enter valid Email and Password')
+
 
 def sign_up_widget() -> None:
     with st.form("Sign Up Form"):
@@ -267,6 +283,7 @@ def sign_up_widget() -> None:
                 elif not check_uniq_email(email_sign_up):
                     st.error("Email already registered. Please use a different email.")
 
+
 def logout_widget() -> None:
     if st.session_state['log_in']:
         logout_btn = st.button("Logout")
@@ -276,6 +293,7 @@ def logout_widget() -> None:
             st.session_state['user_name'] = ''
             st.session_state['user_email'] = ""
             st.rerun()
+
 
 def forgot_password() -> None:
     with st.form("Forgot Password Form"):
@@ -294,9 +312,11 @@ def forgot_password() -> None:
             except firebase_admin.exceptions.FirebaseError:
                 st.error("Email ID not registered with us!")
 
+
 def reset_password() -> None:
     with st.form("Reset Password Form"):
-        email_reset_passwd = st.text_input("Email", value=st.session_state.get('reset_email', ''), placeholder='Please enter your email')
+        email_reset_passwd = st.text_input("Email", value=st.session_state.get('reset_email', ''),
+                                           placeholder='Please enter your email')
         reset_code = st.text_input("Reset Code", placeholder='Enter the code sent to your email')
 
         new_password = st.text_input("New Password", placeholder='Enter your new password', type='password')
@@ -318,6 +338,7 @@ def reset_password() -> None:
                     st.error("Invalid or expired reset code.")
             else:
                 st.error("No reset code found for this email.")
+
 
 def change_password() -> None:
     with st.form("Change Password Form"):
@@ -341,6 +362,7 @@ def change_password() -> None:
             else:
                 st.error("Current password is incorrect.")
 
+
 def navbar() -> str:
     main_navbar = st.empty()
     with main_navbar:
@@ -356,7 +378,7 @@ def navbar() -> str:
                 "nav-link": {
                     "font-size": "18px",
                     "text-align": "left",
-                    "margin":"0px",
+                    "margin": "0px",
                     "color": "white",  # White text
                     "--hover-color": "#444444"  # Darker hover color
                 },
@@ -364,6 +386,7 @@ def navbar() -> str:
             }
         )
         return selected
+
 
 def build_login_ui():
     if not st.session_state.get('log_in', False):
@@ -384,28 +407,86 @@ def build_login_ui():
 
         return st.session_state['log_in']
 
-def home():
-    st.title("Welcome to :red[PoolofTools]")
-    st.markdown("""
-    PoT (Pool of Tools) is an innovative platform designed to empower Large Language Model (LLM) agents with the ability to create and utilize tools autonomously. The platform acts as a dynamic repository, or "pot," where agents can store, share, and access tools that they have created or that others have made available.
-    
-    ### Key Features:
-    
-    - Automated Tool Creation: When given a task by a human user, an agent will first search the "pot" for an existing tool that can complete the task. If no suitable tool is found, the agent will autonomously create a new tool tailored to the task at hand.
-    - Collaborative Environment: Tools created by one agent are made accessible to other agents, fostering a collaborative ecosystem where agents can learn from and build upon each other's work.
-    - Efficient Task Resolution: By leveraging existing tools in the pot, agents can quickly and efficiently solve user problems, reducing redundancy and maximizing resource utilization.
-        Imagine having the power to effortlessly analyze complex documents, uncover insights, and receive instant 
-        responses to your queries, all from one centralized location. **PdfBot** does exactly that by harnessing 
-        the latest advancements in natural language processing and machine learning.
-    
-    Get started now and experienced the future of Autonomous agent in your regular task
-    """)
 
+def home():
+    if 'page' not in st.session_state:
+        st.session_state['page'] = 'Home'
+
+    # Set a custom title with branding
+    st.title(":blue_heart: Welcome to **PoolofTools** :toolbox:")
+
+    # Add a hero section with a friendly introduction
+    st.markdown(
+        """
+        <div style="background-color: #f0f8ff; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+        <h2 style="text-align: center; color: #007acc;">Empowering AI Agents to Build and Share Tools</h2>
+        <p style="text-align: center; color: #333;">
+        Imagine a world where AI agents autonomously create, share, and utilize tools to make your life easier.
+        <strong>PoolofTools (PoT)</strong> is here to transform your vision into reality by enabling
+        Large Language Model (LLM) agents to collaborate and innovate together. 🌟
+        </p>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Add sections with creative icons and layouts
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        ### :star: **Why Choose PoolofTools?**
+    
+        - **🚀 Automated Tool Creation**: Agents autonomously create new tools for unique tasks if no suitable ones exist.
+        - **🤝 Collaborative Environment**: Share and access tools created by others, fostering a thriving ecosystem of innovation.
+        - **⚡ Efficient Problem Solving**: Leverage existing tools to minimize redundancy and maximize productivity.
+        - **📄 Smart Document Analysis**: Analyze complex documents and uncover insights with tools like **PdfBot**.
+    
+        Get started today and experience the future of task automation!
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Add a testimonial or user story section
+    st.markdown("<br>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style="background-color: #e6f7ff; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
+        <h3 style="text-align: center; color: #0056b3;">What Our Users Say</h3>
+        <blockquote style="text-align: center; font-style: italic; color: #555;">
+        "PoolofTools has revolutionized how I handle complex tasks. With its collaborative ecosystem, my productivity
+        has skyrocketed, and I’ve been able to tackle projects faster than ever before!" - <strong>Fenil</strong>
+        </blockquote>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
+    # Add a visually appealing call-to-action
     st.markdown("<br>", unsafe_allow_html=True)
     col1, col2, col3 = st.columns([1, 2, 1])
     with col2:
-        if st.button("Let's get started!", key='get_started', on_click=set_interaction_page):
-            pass 
+        st.button("🌟 Let's Get Started! 🌟", on_click=set_interaction_page)
+
+    st.markdown("<hr>", unsafe_allow_html=True)
+    st.markdown(
+        """
+        <div style="text-align: center;"> Made with ❤️ by the PoolofTools Team.</div>
+        <div style="text-align: center; font-size: 16px; color: #666;">
+        <strong>Connect with us:</strong> <br>
+        <a href="https://www.linkedin.com" target="_blank" style="margin: 0 10px; text-decoration: none;">
+        <img src="https://img.icons8.com/ios-filled/50/0077b5/linkedin.png" title="LinkedIn" alt="LinkedIn" width="40" height="40">
+        </a>
+        <a href="https://twitter.com" target="_blank" style="margin: 0 10px; text-decoration: none;">
+        <img src="https://img.icons8.com/ios-filled/50/1DA1F2/twitter.png" title="Twitter" alt="Twitter" width="40" height="40">
+        </a>
+        <a href="https://github.com" target="_blank" style="margin: 0 10px;">
+        <img src="https://img.icons8.com/ios-filled/50/333333/github.png" title="GitHub" alt="GitHub" width="40" height="40">
+        </a>
+        </div>
+        """,
+        unsafe_allow_html=True,
+    )
+
 
 def interaction_page():
     # Reset the submitted state when the page loads
@@ -419,7 +500,8 @@ def interaction_page():
     st.markdown("<hr>", unsafe_allow_html=True)
 
     # Centered input prompt with larger text and padding for better visual appearance
-    st.markdown("<h3 style='text-align: center;'>📝 What's your task for the Pool of Tools?</h3>", unsafe_allow_html=True)
+    st.markdown("<h3 style='text-align: center;'>📝 What's your task for the Pool of Tools?</h3>",
+                unsafe_allow_html=True)
 
     col1, col2, col3 = st.columns([0.25, 1.5, 0.25])  # Adjust columns for better centering and full-width input
     with col2:
@@ -544,6 +626,7 @@ def upload_file_names_to_firestore(folder_path, user_uid):
         logging.error(f"An error occurred while uploading file names: {e}")
         raise
 
+
 def main():
     """
     Main function to manage user login, navigation, and file uploads.
@@ -556,7 +639,6 @@ def main():
         logging.info("User session initialized with logged-out state.")
     if 'page' not in st.session_state:
         st.session_state['page'] = "Home"
-        logging.info("Default page set to 'home'.")
 
     # Display login UI if the user is not logged in
     if not st.session_state.log_in:
@@ -565,7 +647,7 @@ def main():
     # Post-login logic
     if st.session_state.log_in:
         logging.info(f"User '{st.session_state.get('user_email', 'Unknown')}' logged in.")
-        
+
         with st.sidebar:
             # Sidebar navigation menu
             choose = option_menu(
@@ -597,21 +679,27 @@ def main():
             logging.info("Rendering 'Tools' page.")
             display_tools(user_email)
 
+
 # Set the page flags
 def set_login():
     st.session_state['log_in'] = True
 
+
 def set_home_page():
     st.session_state['page'] = 'Home'
+
 
 def set_interaction_page():
     st.session_state['page'] = 'Interaction'
 
+
 def set_account_page():
     st.session_state['page'] = 'account'
 
+
 def clear_prompt_input():
     st.session_state['prompt_input'] = ""
+
 
 if __name__ == "__main__":
     main()
