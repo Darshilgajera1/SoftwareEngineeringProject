@@ -249,7 +249,7 @@ def login_page() -> None:
             if user_val is not None:
                 st.session_state['log_in'] = True
                 st.session_state['user_name'] = user_val['displayName']
-                st.session_state['user_email'] = username
+                st.session_state['user_email'] = username.strip().lower()
                 st.success('Login Successful!!')
                 st.rerun()
             else:
