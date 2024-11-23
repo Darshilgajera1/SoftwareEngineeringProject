@@ -538,6 +538,8 @@ def interaction_page():
     st.markdown("<h4>Powered by Pool of Tools</h4>", unsafe_allow_html=True)
 
 
+# def display_tools(user_uid):
+
 def display_tools(user_uid):
     """
     Display tools available in the PoolofTools folder for the authenticated user,
@@ -545,8 +547,18 @@ def display_tools(user_uid):
 
     :param user_uid: The UID of the authenticated user.
     """
+    st.write(f"### Tools available for user: {st.session_state['user_name']}")
     # Path to the user's specific folder inside PoolofTools
     user_tools_folder = os.path.join('./PoolofTools', user_uid)
+
+    # Define a placeholder for displaying HTML content
+    display_box = st.empty()
+
+    # Function to remove JavaScript from HTML content
+    def remove_javascript(html_content):
+        # Remove <script> tags and any JavaScript inside them
+        clean_html = re.sub(r'<script.?>.?</script>', '', html_content, flags=re.DOTALL)
+        return clean_html
 
     try:
         # Check if the user's folder exists
@@ -555,9 +567,27 @@ def display_tools(user_uid):
             html_files = [f for f in os.listdir(user_tools_folder) if f.endswith('.html')]
 
             if html_files:
-                st.write(f"### Tools available for user: {st.session_state['user_name']}")
                 logging.info(f"HTML files found for user '{user_uid}': {html_files}")
 
+                # Display the content at the top first
+                display_box.empty()  # Clear the display box
+
+                # You can display the first HTML file content as a preview above buttons
+                with open(os.path.join(user_tools_folder, html_files[0]), "r") as file:
+                    html_content = file.read()
+                    # Remove JavaScript from HTML content
+                    clean_html = remove_javascript(html_content)
+                    # Display the HTML content inside the display_box
+                    display_box.markdown(
+                        f"""
+                        <div style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
+                            {clean_html}
+                        </div>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+                # Create columns for buttons
                 cols = st.columns(3)
                 for i, tool in enumerate(html_files):
                     # Construct the full path to the tool
@@ -568,10 +598,24 @@ def display_tools(user_uid):
                     col = cols[i % 3]
                     with col:
                         if st.button(f"Run {tool_name}"):
-                            # Read and display the HTML content
+                            # Read the HTML content
                             with open(tool_path, "r") as file:
                                 html_content = file.read()
-                            components.html(html_content, height=600)
+
+                            # Remove JavaScript from the HTML content
+                            clean_html = remove_javascript(html_content)
+
+                            # Clear previous content and show new HTML
+                            display_box.empty()  # Clear the display box
+                            display_box.markdown(
+                                f"""
+                                <div style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
+                                    {clean_html}
+                                </div>
+                                """,
+                                unsafe_allow_html=True
+                            )
+
             else:
                 st.write("No HTML files found in your tools folder.")
                 logging.info(f"No HTML files found in the tools folder for user '{user_uid}'.")
@@ -587,7 +631,7 @@ def display_tools(user_uid):
             logging.info(f"Tools folder does not exist for user '{user_uid}'.")
     except Exception as e:
         st.error(f"Error displaying tools: {e}")
-        logging.error(f"Error displaying tools for user UID '{user_uid}': {e}")
+        logging.error(f"Error displaying tools for user UID '{user_uid}': {e}")
 
 
 def upload_file_names_to_firestore(folder_path, user_uid):
