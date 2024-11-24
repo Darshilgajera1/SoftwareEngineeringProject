@@ -187,11 +187,6 @@ def send_reset_code_email(email):
     send_email(email, "Your Password Reset Code", f"Your reset code is: {code}")
 
 
-def account():
-    st.title('Welcome' + st.session_state.get('user_name', ''))
-    build_login_ui()
-
-
 def check_name(name_sign_up: str) -> bool:
     name_regex = (r'^[A-Za-z_][A-Za-z0-9_]*')
     return bool(re.search(name_regex, name_sign_up))
@@ -307,10 +302,14 @@ def forgot_password() -> None:
                 user = auth.get_user_by_email(email_forgot_passwd)
                 send_reset_code_email(email_forgot_passwd)
                 st.session_state['reset_email'] = email_forgot_passwd
-                st.session_state['reset_code_sent'] = True
+                set_reset_code_status()
                 st.success("Secure Password Sent Successfully!")
+                st.rerun()
             except firebase_admin.exceptions.FirebaseError:
                 st.error("Email ID not registered with us!")
+
+def set_reset_code_status():
+    st.session_state['reset_code_sent'] = True
 
 
 def reset_password() -> None:
@@ -366,24 +365,31 @@ def change_password() -> None:
 def navbar() -> str:
     main_navbar = st.empty()
     with main_navbar:
+        options = ['Login', 'Create Account', 'Forgot Password']
+        icons = ['box-arrow-in-right', 'person-plus', 'key']
+        
+        selected = None
+        if st.session_state.get('reset_code_sent', False):
+            options.append('Reset Password')
+            icons.append('key')
+
         selected = option_menu(
             menu_title=None,
             default_index=0,
-            options=['Login', 'Create Account', 'Forgot Password', 'Reset Password'],
-            icons=['key', 'person-plus', 'question', 'key'],
+            options=options,
+            icons=icons,
             orientation="horizontal",
             styles={
                 "container": {"padding": "0!important", "background-color": "#333333"},  # Dark background for navbar
-                "icon": {"color": "white", "font-size": "18px"},  # White icons for better visibility
-                "nav-link": {
-                    "font-size": "18px",
-                    "text-align": "left",
-                    "margin": "0px",
-                    "color": "white",  # White text
-                    "--hover-color": "#444444"  # Darker hover color
-                },
-                "nav-link-selected": {"background-color": "black"},  # Selected link background
-            }
+                    "icon": {"color": "white", "font-size": "18px"},  # White icons for better visibility
+                    "nav-link": {
+                                "text-align": "left",
+                                "color": "white",  # White text
+                                "margin": "0px",
+                                "--hover-color": "#444444",  # Darker hover color
+                                "nav-link-selected": {"background-color": "black"}
+                            }
+                }
         )
         return selected
 
@@ -402,7 +408,6 @@ def build_login_ui():
             forgot_password()
 
         if selected == 'Reset Password' and st.session_state.get('reset_code_sent', False):
-            st.session_state['reset_code_sent'] = False
             reset_password()
 
         return st.session_state['log_in']
