@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Summarization Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px; background-color: white;}
+        textarea { width: 100%; height: 150px; }
+        button { margin-top: 10px; }
+        #result { margin-top: 20px; }
+    </style>
+</head>
+<body>
+    <h1>Summarization Tool</h1>
+    <textarea id="inputText" placeholder="Enter your paragraph here..."></textarea>
+    <input type="file" id="fileInput" accept="text/plain" />
+    <button id="summarizeButton">Summarize</button>
+    <div id="result"></div>
+
+    <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
+    <script>
+        document.getElementById('summarizeButton').addEventListener('click', async () => {
+            const inputText = document.getElementById('inputText').value;
+            const fileInput = document.getElementById('fileInput');
+            let textToSummarize = inputText;
+
+            if (fileInput.files.length > 0) {
+                const file = fileInput.files[0];
+                const reader = new FileReader();
+                reader.onload = async (event) => {
+                    textToSummarize = event.target.result;
+                    await summarizeText(textToSummarize);
+                };
+                reader.readAsText(file);
+            } else if (!inputText) {
+                alert('Please enter a paragraph or upload a file to summarize.');
+                return;
+            } else {
+                await summarizeText(textToSummarize);
+            }
+        });
+
+        async function summarizeText(text) {
+            document.getElementById('result').innerText = 'Summarizing...';
+            try {
+                const response = await axios.post('https://api-inference.huggingface.co/models/facebook/bart-large-cnn', 
+                { 
+                    inputs: text 
+                }, 
+                { 
+                    headers: { 
+                        'Authorization': 'Bearer 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' 
+                    }
+                });
+        const summary = response.data[0].summary_text;
+        document.getElementById('result').innerText = summary;
+        downloadSummary(summary);
+    } catch (error) {
+        document.getElementById('result').innerText = 'Error summarizing text.';
+        console.error(error);
+    }
+}
+
+
+        function downloadSummary(summary) {
+            const blob = new Blob([summary], { type: 'text/plain' });
+            const link = document.createElement('a');
+            link.href = window.URL.createObjectURL(blob);
+            link.download = 'summary.txt';
+            link.click();
+        }
+    </script>
+</body>
+</html>

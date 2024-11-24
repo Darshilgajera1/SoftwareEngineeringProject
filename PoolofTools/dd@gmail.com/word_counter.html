@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Word Counter Tool</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 20px;  background-color: white;}
+        textarea { width: 100%; height: 200px; }
+        button { margin-top: 10px; }
+        #result { margin-top: 20px; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <h1>Word Counter Tool</h1>
+    <textarea id="textInput" placeholder="Type or paste your text here..."></textarea>
+    <button id="countButton">Count Words</button>
+    <div id="result"></div>
+
+    <script>
+        document.getElementById('countButton').addEventListener('click', function() {
+            const text = document.getElementById('textInput').value;
+            const wordCount = text.trim() === '' ? 0 : text.trim().split(/\s+/).length;
+            document.getElementById('result').innerText = 'Word Count: ' + wordCount;
+        });
+    </script>
+</body>
+</html>
