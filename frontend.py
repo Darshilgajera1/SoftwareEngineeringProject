@@ -538,8 +538,6 @@ def interaction_page():
     st.markdown("<h4>Powered by Pool of Tools</h4>", unsafe_allow_html=True)
 
 
-# def display_tools(user_uid):
-
 def display_tools(user_uid):
     """
     Display tools available in the PoolofTools folder for the authenticated user,
@@ -547,7 +545,6 @@ def display_tools(user_uid):
 
     :param user_uid: The UID of the authenticated user.
     """
-    st.write(f"### Tools available for user: {st.session_state['user_name']}")
     # Path to the user's specific folder inside PoolofTools
     user_tools_folder = os.path.join('./PoolofTools', user_uid)
 
@@ -567,6 +564,7 @@ def display_tools(user_uid):
             html_files = [f for f in os.listdir(user_tools_folder) if f.endswith('.html')]
 
             if html_files:
+                st.write(f"### Tools available for user: {st.session_state['user_name']}")
                 logging.info(f"HTML files found for user '{user_uid}': {html_files}")
 
                 # Display the content at the top first
@@ -631,7 +629,7 @@ def display_tools(user_uid):
             logging.info(f"Tools folder does not exist for user '{user_uid}'.")
     except Exception as e:
         st.error(f"Error displaying tools: {e}")
-        logging.error(f"Error displaying tools for user UID '{user_uid}': {e}")
+        logging.error(f"Error displaying tools for user UID '{user_uid}': {e}")
 
 
 def upload_file_names_to_firestore(folder_path, user_uid):
