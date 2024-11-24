@@ -554,7 +554,7 @@ def display_tools(user_uid):
     # Function to remove JavaScript from HTML content
     def remove_javascript(html_content):
         # Remove <script> tags and any JavaScript inside them
-        clean_html = re.sub(r'<script.?>.?</script>', '', html_content, flags=re.DOTALL)
+        clean_html = re.sub(r'<script.*?>.*?</script>', '', html_content, flags=re.DOTALL)
         return clean_html
 
     try:
