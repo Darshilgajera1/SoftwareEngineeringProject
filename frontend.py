@@ -1,3 +1,4 @@
+import base64
 import json
 import logging
 import os
@@ -24,6 +25,8 @@ from streamlit_option_menu import option_menu
 import util
 from main import MainAgentWithTools
 from prompt import TOOL_MAKER_PROMPT
+import time
+import threading
 from tools import (
     verify_and_install_library,
     query_available_modules,
@@ -146,8 +149,12 @@ tool_making_agent = MainAgentWithTools(name="ToolCreator",
                                        tools=tools)
 
 if not firebase_admin._apps:
+    encoded_creds = os.getenv("FIREBASE_CREDENTIALS")
+    decoded_creds = base64.b64decode(encoded_creds).decode("utf-8")
+    creds_dict = json.loads(decoded_creds)
+
     print("###########################   Initializing Firebase Admin SDK...")
-    cred = credentials.Certificate(os.getenv("FIREBASE_CREDENTIALS_PATH"))
+    cred = credentials.Certificate(creds_dict)
     firebase_admin.initialize_app(cred, {
         'projectId': os.getenv("GOOGLE_CLOUD_PROJECT"),
     })
@@ -225,12 +232,6 @@ def sign_in_with_email_and_password(user_name: str, password: str, return_secure
         return None
 
 
-def register_user(name_sign_up: str, email_sign_up: str, username_sign_up: str, password_sign_up: str) -> bool:
-    user = auth.create_user(display_name=name_sign_up, email=email_sign_up, password=password_sign_up,
-                            uid=username_sign_up)
-    return bool(user.uid)
-
-
 def login_page() -> None:
     with st.form("Login form"):
         username = st.text_input("Email", placeholder='Your email')
@@ -259,13 +260,60 @@ def sign_up_widget() -> None:
         password_sign_up = st.text_input("Password *", placeholder='Create a strong password', type='password')
 
         st.markdown("###")
+        
+        # Register button
         register_button = st.form_submit_button(label='Register')
 
+        # Check if button is pressed and validate input
         if register_button:
-            if check_name(name_sign_up) and check_email(email_sign_up) and check_username(
-                    username_sign_up) and check_uniq_username(username_sign_up) and check_uniq_email(email_sign_up):
-                register_user(name_sign_up, email_sign_up, username_sign_up, password_sign_up)
-                st.success("Registration Successful!")
+            if check_name(name_sign_up) and check_email(email_sign_up) and check_username(username_sign_up) and check_uniq_username(username_sign_up) and check_uniq_email(email_sign_up):
+                    components.html(f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Email Verification Test</title>
+                        <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script> <!-- Use v8.x for non-modular code -->
+                        <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
+                    </head>
+                    <body>
+                        <script>
+                                    
+                        const firebaseConfig = {{
+                                apiKey: "AIzaSyDI-O6nichHQ92ix5HzNoU5QyYmUNwnMdE",
+                                authDomain: "pooloftools-e25db.firebaseapp.com",
+                                projectId: "pooloftools-e25db",
+                                storageBucket: "pooloftools-e25db.firebasestorage.app",
+                                messagingSenderId: "472238234953",
+                                appId: "1:472238234953:web:9f21b7e6e9c88b68f78e98",
+                                measurementId: "G-7P3MHN7PRH"
+                            }};
+                            
+                        firebase.initializeApp(firebaseConfig);
+
+                        // Function to send verification email after user creation
+                        firebase.auth().createUserWithEmailAndPassword("{email_sign_up}", "{password_sign_up}")
+                            .then((userCredential) => {{
+                                const user = userCredential.user;
+
+                                // Send email verification
+                                user.sendEmailVerification()
+                                    .then(() => {{
+                                        console.log("Verification email sent!");
+                                        alert("A verification email has been sent to your email address.");
+                                    }})
+                                    .catch((error) => {{
+                                        console.error("Error sending verification email:", error);
+                                        alert("There was an error sending the verification email.");
+                                    }});
+                            }})
+                            .catch((error) => {{
+                                console.error("Error creating user:", error);
+                                alert("There was an error creating the user.");
+                            }});
+                    </script>
+                    </body>
+                    </html>
+                    """, height=0)
             else:
                 if not check_name(name_sign_up):
                     st.error("Invalid name. Please enter a valid name.")
@@ -276,7 +324,7 @@ def sign_up_widget() -> None:
                 elif not check_uniq_username(username_sign_up):
                     st.error("Username already taken. Please choose a different username.")
                 elif not check_uniq_email(email_sign_up):
-                    st.error("Email already registered. Please use a different email.")
+                    st.error("Email already registered. Please use a different email.")
 
 
 def logout_widget() -> None:
@@ -298,68 +346,45 @@ def forgot_password() -> None:
         forgot_passwd_submit_button = st.form_submit_button(label='Get Password')
 
         if forgot_passwd_submit_button:
-            try:
-                user = auth.get_user_by_email(email_forgot_passwd)
-                send_reset_code_email(email_forgot_passwd)
-                st.session_state['reset_email'] = email_forgot_passwd
-                set_reset_code_status()
-                st.success("Secure Password Sent Successfully!")
-                st.rerun()
+            try:    
+                components.html(f"""
+                    <!DOCTYPE html>
+                    <html>
+                    <head>
+                        <title>Password Reset</title>
+                        <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-app.js"></script> <!-- Use v8.x for non-modular code -->
+                        <script src="https://www.gstatic.com/firebasejs/8.0.0/firebase-auth.js"></script>
+                    </head>
+                    <body>
+                        <script>
+                            const firebaseConfig = {{
+                                apiKey: "AIzaSyDI-O6nichHQ92ix5HzNoU5QyYmUNwnMdE",
+                                authDomain: "pooloftools-e25db.firebaseapp.com",
+                                projectId: "pooloftools-e25db",
+                                storageBucket: "pooloftools-e25db.firebasestorage.app",
+                                messagingSenderId: "472238234953",
+                                appId: "1:472238234953:web:9f21b7e6e9c88b68f78e98",
+                                measurementId: "G-7P3MHN7PRH"
+                            }};
+                            
+                            firebase.initializeApp(firebaseConfig);
+
+                            // Function to send password reset email
+                            firebase.auth().sendPasswordResetEmail("{email_forgot_passwd}")
+                                .then(() => {{
+                                    console.log("Password reset email sent!");
+                                    alert("A password reset email has been sent to your email address.");
+                                }})
+                                .catch((error) => {{
+                                    console.error("Error sending password reset email:", error);
+                                    alert("There was an error sending the password reset email.");
+                                }});
+                        </script>
+                    </body>
+                    </html>
+                    """, height=0)
             except firebase_admin.exceptions.FirebaseError:
                 st.error("Email ID not registered with us!")
-
-def set_reset_code_status():
-    st.session_state['reset_code_sent'] = True
-
-
-def reset_password() -> None:
-    with st.form("Reset Password Form"):
-        email_reset_passwd = st.text_input("Email", value=st.session_state.get('reset_email', ''),
-                                           placeholder='Please enter your email')
-        reset_code = st.text_input("Reset Code", placeholder='Enter the code sent to your email')
-
-        new_password = st.text_input("New Password", placeholder='Enter your new password', type='password')
-
-        st.markdown("###")
-        reset_passwd_submit_button = st.form_submit_button(label='Reset Password')
-
-        if reset_passwd_submit_button:
-            if email_reset_passwd in reset_codes:
-                stored_code = reset_codes[email_reset_passwd]
-                if stored_code['code'] == reset_code and datetime.now() < stored_code['expiry']:
-                    user = auth.get_user_by_email(email_reset_passwd)
-                    auth.update_user(user.uid, password=new_password)
-
-                    del reset_codes[email_reset_passwd]
-
-                    st.success("Password has been reset. You can now log in with your new password.")
-                else:
-                    st.error("Invalid or expired reset code.")
-            else:
-                st.error("No reset code found for this email.")
-
-
-def change_password() -> None:
-    with st.form("Change Password Form"):
-        current_password = st.text_input("Current Password", type='password', placeholder='Enter your current password')
-        new_password = st.text_input("New Password", type='password', placeholder='Enter your new password')
-
-        st.markdown("###")
-        change_password_submit_button = st.form_submit_button(label='Change Password')
-
-        if change_password_submit_button:
-            user_email = st.session_state['user_email']
-            user_val = sign_in_with_email_and_password(user_email, current_password)
-
-            if user_val is not None:
-                try:
-                    user = auth.get_user_by_email(user_email)
-                    auth.update_user(user.uid, password=new_password)
-                    st.success("Password has been changed successfully.")
-                except firebase_admin.exceptions.FirebaseError as e:
-                    st.error(f"Error updating password: {e}")
-            else:
-                st.error("Current password is incorrect.")
 
 
 def navbar() -> str:
@@ -406,9 +431,6 @@ def build_login_ui():
 
         if selected == 'Forgot Password':
             forgot_password()
-
-        if selected == 'Reset Password' and st.session_state.get('reset_code_sent', False):
-            reset_password()
 
         return st.session_state['log_in']
 
@@ -533,8 +555,8 @@ def interaction_page():
 
             with st.spinner("🤖 Processing your request..."):
                 st.success(f"✅ Response for your prompt: '{prompt}'")
+                st.markdown(f"📄 **Output:** The tool has been created and stored successfully. Find it under Tools tab.")
 
-            st.markdown(f"📄 **Output:** {response}")
 
     # Additional styling and spacing for better appearance
     st.markdown("<br><br>", unsafe_allow_html=True)
@@ -553,15 +575,6 @@ def display_tools(user_uid):
     # Path to the user's specific folder inside PoolofTools
     user_tools_folder = os.path.join('./PoolofTools', user_uid)
 
-    # Define a placeholder for displaying HTML content
-    display_box = st.empty()
-
-    # Function to remove JavaScript from HTML content
-    def remove_javascript(html_content):
-        # Remove <script> tags and any JavaScript inside them
-        clean_html = re.sub(r'<script.*?>.*?</script>', '', html_content, flags=re.DOTALL)
-        return clean_html
-
     try:
         # Check if the user's folder exists
         if os.path.exists(user_tools_folder):
@@ -572,25 +585,6 @@ def display_tools(user_uid):
                 st.write(f"### Tools available for user: {st.session_state['user_name']}")
                 logging.info(f"HTML files found for user '{user_uid}': {html_files}")
 
-                # Display the content at the top first
-                display_box.empty()  # Clear the display box
-
-                # You can display the first HTML file content as a preview above buttons
-                with open(os.path.join(user_tools_folder, html_files[0]), "r") as file:
-                    html_content = file.read()
-                    # Remove JavaScript from HTML content
-                    clean_html = remove_javascript(html_content)
-                    # Display the HTML content inside the display_box
-                    display_box.markdown(
-                        f"""
-                        <div style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
-                            {clean_html}
-                        </div>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-                # Create columns for buttons
                 cols = st.columns(3)
                 for i, tool in enumerate(html_files):
                     # Construct the full path to the tool
@@ -599,28 +593,32 @@ def display_tools(user_uid):
                     # Create a button to load and display the HTML content
                     tool_name = os.path.splitext(tool)[0].replace('_', " ").title()  # Get the tool name without extension
                     col = cols[i % 3]
+                    selected_tool_path = ""
                     with col:
                         if st.button(f"Run {tool_name}"):
-                            # Read the HTML content
-                            with open(tool_path, "r") as file:
-                                html_content = file.read()
+                            selected_tool_path = tool_path  # Store the selected tool path
 
-                            # Remove JavaScript from the HTML content
-                            clean_html = remove_javascript(html_content)
+                    # If a tool was selected, display its content in full width
+                    if selected_tool_path:
+                        # Read and display the HTML content
+                        with open(selected_tool_path, "r") as file:
+                            html_content = file.read()
 
-                            # Clear previous content and show new HTML
-                            display_box.empty()  # Clear the display box
-                            display_box.markdown(
-                                f"""
-                                <div style="border: 2px solid #ccc; padding: 10px; border-radius: 5px;">
-                                    {clean_html}
-                                </div>
-                                """,
-                                unsafe_allow_html=True
-                            )
+                        components.html(
+                            html_content,
+                            height=800,  # Adjust the height as needed
+                            scrolling=True  # Enable scrolling if the content exceeds the viewport height
+                        )
 
             else:
-                st.write("No HTML files found in your tools folder.")
+                st.markdown(
+                """
+                <div style="padding: 10px; border-radius: 5px; background-color: #f8d7da; color: #842029; border: 1px solid #f5c2c7; font-family: Arial, sans-serif;">
+                    <strong>🚨 No tools have been created by you yet.</strong><br>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
                 logging.info(f"No HTML files found in the tools folder for user '{user_uid}'.")
         else:
             st.markdown(
@@ -635,41 +633,6 @@ def display_tools(user_uid):
     except Exception as e:
         st.error(f"Error displaying tools: {e}")
         logging.error(f"Error displaying tools for user UID '{user_uid}': {e}")
-
-
-def upload_file_names_to_firestore(folder_path, user_uid):
-    """
-    Store only file names in Firestore under the user's UID, with detailed logging.
-
-    :param folder_path: Path to the local folder containing files.
-    :param user_uid: The authenticated user's UID.
-    """
-    try:
-        logging.info(f"Starting to upload file names from folder: {folder_path} for user UID: {user_uid}")
-
-        # Firestore reference for the user's document
-        user_doc_ref = db.collection('users').document(user_uid)
-
-        # Store file names from the folder
-        file_names = []
-        for filename in os.listdir(folder_path):
-            file_path = os.path.join(folder_path, filename)
-            if os.path.isfile(file_path):  # Ensure it's a file
-                # Save file name in Firestore
-                file_metadata = {
-                    'filename': filename,
-                    'timestamp': firestore.SERVER_TIMESTAMP
-                }
-                user_doc_ref.collection('files').add(file_metadata)
-                file_names.append(filename)
-                logging.info(f"Stored file name '{filename}' in Firestore for user '{user_uid}'.")
-
-        logging.info("All file names successfully stored in Firestore!")
-        return file_names
-
-    except Exception as e:
-        logging.error(f"An error occurred while uploading file names: {e}")
-        raise
 
 
 def main():

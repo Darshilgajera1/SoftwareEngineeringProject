@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Color Palette Extractor</title>
+    <style>
+        body { font-family: Arial, sans-serif; background-color: white; margin: 0; padding: 20px; }
+        h1 { text-align: center; }
+        #upload-area { border: 2px dashed #ccc; padding: 20px; text-align: center; margin: 20px 0; }
+        #palette { display: flex; justify-content: center; flex-wrap: wrap; }
+        .color-box { width: 50px; height: 50px; margin: 5px; border: 1px solid #ccc; }
+        #submit { display: block; margin: 0 auto; padding: 10px 20px; background-color: #28a745; color: white; border: none; cursor: pointer; }
+        #loading { display: none; text-align: center; }
+    </style>
+</head>
+<body>
+    <h1>Color Palette Extractor</h1>
+    <div id="upload-area">
+        <input type="file" id="file-input" accept="image/*" />
+        <p>Drag and drop an image file here or click to upload.</p>
+    </div>
+    <button id="submit">Extract Colors</button>
+    <div id="loading">Loading...</div>
+    <div id="palette"></div>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/color-thief/2.3.0/color-thief.umd.js"></script>
+    <script>
+        document.getElementById('submit').addEventListener('click', function() {
+            const fileInput = document.getElementById('file-input');
+            if (fileInput.files.length === 0) {
+                alert('Please upload an image file.');
+                return;
+            }
+            const file = fileInput.files[0];
+            const img = new Image();
+            img.src = URL.createObjectURL(file);
+            img.onload = function() {
+                const colorThief = new ColorThief();
+                const palette = colorThief.getPalette(img, 5);
+                document.getElementById('palette').innerHTML = '';
+                palette.forEach(color => {
+                    const colorBox = document.createElement('div');
+                    colorBox.className = 'color-box';
+                    colorBox.style.backgroundColor = `rgb(${color[0]}, ${color[1]}, ${color[2]})`;
+                    document.getElementById('palette').appendChild(colorBox);
+                });
+                document.getElementById('loading').style.display = 'none';
+            };
+            document.getElementById('loading').style.display = 'block';
+        });
+    </script>
+</body>
+</html>

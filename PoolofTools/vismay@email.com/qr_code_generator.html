@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>QR Code Generator</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <style>
+        body { font-family: Arial, sans-serif; background-color: #fff; color: #333; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+        .container { text-align: center; }
+        input[type='text'] { width: 300px; padding: 10px; margin: 10px 0; border: 1px solid #ccc; border-radius: 5px; }
+        button { padding: 10px 20px; background-color: #28a745; color: white; border: none; border-radius: 5px; cursor: pointer; transition: background-color 0.3s; }
+        button:hover { background-color: #218838; }
+        #qrcode { margin-top: 20px; }
+        .loading { display: none; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>QR Code Generator</h1>
+        <input type="text" id="text-input" placeholder="Enter text or URL" />
+        <button id="generate-btn">Generate QR Code</button>
+        <div class="loading">Generating QR Code...</div>
+        <div id="qrcode"></div>
+    </div>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery.qrcode/1.0/jquery.qrcode.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#generate-btn').click(function() {
+                var text = $('#text-input').val();
+                $('#qrcode').empty();
+                $('.loading').show();
+                if (text) {
+                    $('#qrcode').qrcode({
+                        width: 128,
+                        height: 128,
+                        text: text
+                    });
+                    $('.loading').hide();
+                } else {
+                    $('.loading').hide();
+                    alert('Please enter a valid text or URL.');
+                }
+            });
+        });
+    </script>
+</body>
+</html>
