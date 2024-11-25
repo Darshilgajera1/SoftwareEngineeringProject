@@ -142,7 +142,7 @@ class MainAgentWithTools(MainAgent):
                                                          tools=self.tools),
             tools=self.tools,
             max_iterations=99,
-            verbose=True,
+            verbose=False,
             handle_parsing_errors=True,
             memory=ConversationBufferMemory(
                 memory_key="chat_history", return_messages=True

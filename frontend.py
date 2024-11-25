@@ -547,13 +547,13 @@ def interaction_page():
             prompt = st.session_state['prompt']
 
             # Pass the file to the tool making agent for further processing
-            # file_path = os.path.join("PoolOfTools", st.session_state['user_email'])
+            file_path = os.path.join("PoolOfTools", st.session_state['user_email'])
 
             # Ensure the directory exists
-            # os.makedirs(file_path, exist_ok=True)
+            os.makedirs(file_path, exist_ok=True)
 
             # Pass the file to the tool-making agent for further processing
-            tool_making_agent.receive("HumanUser", f"{prompt}. Store the created tool in directory:")
+            tool_making_agent.receive("HumanUser", f"{prompt}. Store the created tool in directory: {file_path}")
             response = tool_making_agent.send()
 
             with st.spinner("🤖 Processing your request..."):
