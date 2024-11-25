@@ -550,7 +550,7 @@ def interaction_page():
             # file_path = os.path.join("PoolOfTools", st.session_state['user_email'])
 
             # Ensure the directory exists
-            os.makedirs(file_path, exist_ok=True)
+            # os.makedirs(file_path, exist_ok=True)
 
             # Pass the file to the tool-making agent for further processing
             tool_making_agent.receive("HumanUser", f"{prompt}. Store the created tool in directory:")
