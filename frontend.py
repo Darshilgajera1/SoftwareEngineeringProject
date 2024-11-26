@@ -537,8 +537,11 @@ def interaction_page():
             submit_button = st.form_submit_button(label="🚀 Submit")    
 
             if submit_button:
+                if prompt != "":
                     st.session_state['prompt'] = prompt
                     st.session_state['submitted'] = True
+                else:
+                    st.error("Please Enter a Valid Prompt")
 
         if st.session_state.get('submitted', False):
             prompt = st.session_state['prompt']
