@@ -1,7 +1,10 @@
 # PoT (Pool of Tools)
 
 ## Overview
-**PoT (Pool of Tools)** is an innovative platform designed to empower Large Language Model (LLM) agents with the ability to create and utilize tools autonomously. The platform acts as a dynamic repository, or "pot," where agents can store, share, and access tools that they have created or that others have made available. 
+**PoT (Pool of Tools)** is an innovative platform designed to empower Large Language Model (LLM) agents with the ability to create and utilize tools autonomously. The platform acts as a dynamic repository, or "pot," where agents can store, share, and access tools that they have created or that others have made available.
+
+### Live Demo
+Check out the live demo at [PoT Live Demo](http://pooloftools.westus2.cloudapp.azure.com:443/).
 
 ### Key Features:
 - **Automated Tool Creation:** When given a task by a human user, an agent will first search the "pot" for an existing tool that can complete the task. If no suitable tool is found, the agent will autonomously create a new tool tailored to the task at hand.
@@ -26,6 +29,26 @@ To get started with PoT:
 
 ## Contributing
 Contributions are welcome! Whether it's adding new features, fixing bugs, or improving documentation, feel free to submit a pull request.
+
+## Developers
+
+### Darshil Gajera
+- **Role:** Lead Developer
+- **Email:** darshilgajera75@gmail.com
+- **GitHub:** [darshilgajera](https://github.com/Darshilgajera1)
+- **LinkedIn:** [Darshil Gajera](https://www.linkedin.com/in/darshil-gajera/)
+
+### Vismay Gajera
+- **Role:** Frontend Developer
+- **Email:** vismaygajera2001@gmail.com
+- **GitHub:** [vismaygajera](https://github.com/VismayGajera112)
+- **LinkedIn:** [Vismay Gajera](https://www.linkedin.com/in/vismay-gajera-265519190/)
+
+### Fenil Dobariya
+- **Role:** Backend Developer
+- **Email:** fenildobariya@outlook.com
+- **GitHub:** [fenildobariya](https://github.com/ifenil)
+- **LinkedIn:** [Fenil Dobariya](https://www.linkedin.com/in/fenil-dobariya-907a0a190/)
 
 ## License
 This project is licensed under the MIT License. See the [LICENSE](LICENSE) file for more details.

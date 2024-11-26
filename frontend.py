@@ -2,13 +2,8 @@ import base64
 import json
 import logging
 import os
-import random
 import re
-import smtplib
-import string
 import sys
-from datetime import datetime, timedelta
-from email.mime.text import MIMEText
 
 import firebase_admin
 import requests
@@ -25,8 +20,6 @@ from streamlit_option_menu import option_menu
 import util
 from main import MainAgentWithTools
 from prompt import TOOL_MAKER_PROMPT
-import time
-import threading
 from tools import (
     verify_and_install_library,
     query_available_modules,
@@ -35,7 +28,6 @@ from tools import (
 
 util.load_secrets()
 
-# Add the parent directory to sys.path to import from other modules
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 st.markdown("""
@@ -110,7 +102,6 @@ st.markdown("""
     </style>
     """, unsafe_allow_html=True)
 
-# Define system prompts for our agent
 system_prompt_scribe = TOOL_MAKER_PROMPT
 
 # initialize file management tools
@@ -118,7 +109,6 @@ file_tools = FileManagementToolkit(
     selected_tools=["read_file", "write_file", "list_directory", "copy_file", "move_file", "file_delete"]
 ).get_tools()
 
-# initialie search API
 search = GoogleSearchAPIWrapper()
 
 
@@ -160,38 +150,6 @@ if not firebase_admin._apps:
     })
 
 db = firestore.client()
-
-reset_codes = {}
-
-
-def generate_reset_code(email):
-    code = ''.join(random.choices(string.ascii_uppercase + string.digits, k=8))
-    expiry_time = datetime.now() + timedelta(minutes=10)
-    reset_codes[email] = {'code': code, 'expiry': expiry_time}
-    return code
-
-
-def send_email(recipient, subject, body):
-    sender = os.getenv("EMAIL")
-    password = os.getenv("EMAIL_PASSWORD")
-
-    msg = MIMEText(body)
-    msg["Subject"] = subject
-    msg["From"] = sender
-    msg["To"] = recipient
-
-    try:
-        with smtplib.SMTP_SSL("smtp.gmail.com", 465) as server:
-            server.login(sender, password)
-            server.sendmail(sender, recipient, msg.as_string())
-        st.success("Email sent successfully")
-    except Exception as e:
-        st.error(f"Failed to send email: {e}")
-
-
-def send_reset_code_email(email):
-    code = generate_reset_code(email)
-    send_email(email, "Your Password Reset Code", f"Your reset code is: {code}")
 
 
 def check_name(name_sign_up: str) -> bool:
@@ -261,10 +219,8 @@ def sign_up_widget() -> None:
 
         st.markdown("###")
         
-        # Register button
         register_button = st.form_submit_button(label='Register')
 
-        # Check if button is pressed and validate input
         if register_button:
             if check_name(name_sign_up) and check_email(email_sign_up) and check_username(username_sign_up) and check_uniq_username(username_sign_up) and check_uniq_email(email_sign_up):
                     components.html(f"""
@@ -405,13 +361,13 @@ def navbar() -> str:
             icons=icons,
             orientation="horizontal",
             styles={
-                "container": {"padding": "0!important", "background-color": "#333333"},  # Dark background for navbar
-                    "icon": {"color": "white", "font-size": "18px"},  # White icons for better visibility
+                "container": {"padding": "0!important", "background-color": "#333333"},
+                    "icon": {"color": "white", "font-size": "18px"},
                     "nav-link": {
                                 "text-align": "left",
-                                "color": "white",  # White text
+                                "color": "white",
                                 "margin": "0px",
-                                "--hover-color": "#444444",  # Darker hover color
+                                "--hover-color": "#444444",
                                 "nav-link-selected": {"background-color": "black"}
                             }
                 }
@@ -439,10 +395,8 @@ def home():
     if 'page' not in st.session_state:
         st.session_state['page'] = 'Home'
 
-    # Set a custom title with branding
     st.title(":blue_heart: Welcome to **PoolofTools** :toolbox:")
 
-    # Add a hero section with a friendly introduction
     st.markdown(
         """
         <div style="background-color: #f0f8ff; padding: 20px; border-radius: 10px; box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);">
@@ -457,7 +411,6 @@ def home():
         unsafe_allow_html=True,
     )
 
-    # Add sections with creative icons and layouts
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -473,7 +426,6 @@ def home():
         unsafe_allow_html=True,
     )
 
-    # Add a testimonial or user story section
     st.markdown("<br>", unsafe_allow_html=True)
     st.markdown(
         """
@@ -510,21 +462,17 @@ def home():
 
 
 def interaction_page():
-    # Reset the submitted state when the page loads
     if 'submitted' in st.session_state:
         st.session_state['submitted'] = False
 
-    # Page Title
     st.markdown("<h1>🤖 Interact with the Pool of Tools</h1>", unsafe_allow_html=True)
 
-    # Horizontal Divider
     st.markdown("<hr>", unsafe_allow_html=True)
 
-    # Centered input prompt with larger text and padding for better visual appearance
     st.markdown("<h3 style='text-align: center;'>📝 What's your task for the Pool of Tools?</h3>",
                 unsafe_allow_html=True)
 
-    col1, col2, col3 = st.columns([0.25, 1.5, 0.25])  # Adjust columns for better centering and full-width input
+    col1, col2, col3 = st.columns([0.25, 1.5, 0.25])
     with col2:
         with st.form("User Input Form"):
             prompt = st.text_input(
@@ -543,13 +491,10 @@ def interaction_page():
         if st.session_state.get('submitted', False):
             prompt = st.session_state['prompt']
 
-            # Pass the file to the tool making agent for further processing
             file_path = os.path.join("PoolOfTools", st.session_state['user_email'])
 
-            # Ensure the directory exists
             os.makedirs(file_path, exist_ok=True)
 
-            # Pass the file to the tool-making agent for further processing
             tool_making_agent.receive("HumanUser", f"{prompt}. Store the created tool in directory: {file_path}")
             response = tool_making_agent.send()
 
@@ -558,10 +503,8 @@ def interaction_page():
                 st.markdown(f"📄 **Output:** The tool has been created and stored successfully. Find it under Tools tab.")
 
 
-    # Additional styling and spacing for better appearance
     st.markdown("<br><br>", unsafe_allow_html=True)
 
-    # Footer
     st.markdown("<h4>Powered by Pool of Tools</h4>", unsafe_allow_html=True)
 
 
@@ -572,13 +515,10 @@ def display_tools(user_uid):
 
     :param user_uid: The UID of the authenticated user.
     """
-    # Path to the user's specific folder inside PoolofTools
     user_tools_folder = os.path.join('./PoolofTools', user_uid)
 
     try:
-        # Check if the user's folder exists
         if os.path.exists(user_tools_folder):
-            # Get all HTML files in the user's folder
             html_files = [f for f in os.listdir(user_tools_folder) if f.endswith('.html')]
 
             if html_files:
@@ -587,27 +527,25 @@ def display_tools(user_uid):
 
                 cols = st.columns(3)
                 for i, tool in enumerate(html_files):
-                    # Construct the full path to the tool
+                    
                     tool_path = os.path.join(user_tools_folder, tool)
 
-                    # Create a button to load and display the HTML content
-                    tool_name = os.path.splitext(tool)[0].replace('_', " ").title()  # Get the tool name without extension
+                    tool_name = os.path.splitext(tool)[0].replace('_', " ").title()
                     col = cols[i % 3]
                     selected_tool_path = ""
                     with col:
                         if st.button(f"Run {tool_name}"):
-                            selected_tool_path = tool_path  # Store the selected tool path
+                            selected_tool_path = tool_path
 
-                    # If a tool was selected, display its content in full width
                     if selected_tool_path:
-                        # Read and display the HTML content
+
                         with open(selected_tool_path, "r") as file:
                             html_content = file.read()
 
                         components.html(
                             html_content,
-                            height=800,  # Adjust the height as needed
-                            scrolling=True  # Enable scrolling if the content exceeds the viewport height
+                            height=800,
+                            scrolling=True
                         )
 
             else:
@@ -641,23 +579,20 @@ def main():
     """
     logging.info("Initializing application...")
 
-    # Initialize session state variables if not already present
     if 'log_in' not in st.session_state:
         st.session_state.log_in = False
         logging.info("User session initialized with logged-out state.")
     if 'page' not in st.session_state:
         st.session_state['page'] = "Home"
 
-    # Display login UI if the user is not logged in
     if not st.session_state.log_in:
         build_login_ui()
 
-    # Post-login logic
     if st.session_state.log_in:
         logging.info(f"User '{st.session_state.get('user_email', 'Unknown')}' logged in.")
 
         with st.sidebar:
-            # Sidebar navigation menu
+
             choose = option_menu(
                 "Menu",
                 ["Home", "Interaction", "Tools"],
@@ -669,14 +604,12 @@ def main():
 
             st.session_state['page'] = choose
             user_email = st.session_state['user_email']
-            # Logout button
             if st.button("Logout"):
                 st.session_state.log_in = False
-                st.session_state['uploaded_files'] = False  # Reset the upload flag
+                st.session_state['uploaded_files'] = False
                 logging.info("User logged out.")
                 logout_widget()
 
-        # Render the corresponding page based on the selected menu option
         if st.session_state['page'] == 'Home':
             logging.info("Rendering 'Home' page.")
             home()
@@ -687,8 +620,6 @@ def main():
             logging.info("Rendering 'Tools' page.")
             display_tools(user_email)
 
-
-# Set the page flags
 def set_login():
     st.session_state['log_in'] = True
 
