@@ -127,16 +127,29 @@ tools = [GoogleSearchTool,
          paged_web_browser,
          verify_and_install_library,
          ] + file_tools
+if "openai_api_key" not in st.session_state:
+        st.session_state["openai_api_key"] = ""
+if st.session_state["openai_api_key"]:
+    if "openai_api_key" in st.session_state and st.session_state["openai_api_key"]:
+        api_key = st.session_state["openai_api_key"]
+    else:
+        st.error("Please enter your OpenAI API key in the 'OpenAI Key' page.")
+        api_key = None
 
-# Initialize our agents with their respective roles and system prompts
-tool_making_agent = MainAgentWithTools(name="ToolCreator",
-                                       system_message=system_prompt_scribe,
-                                       model=ChatOpenAI(
-                                           model_name='gpt-4o-mini',
-                                           streaming=True,
-                                           temperature=0.0,
-                                           callbacks=[StreamingStdOutCallbackHandler()]),
-                                       tools=tools)
+    print("api_key",api_key)
+
+    if api_key:
+        tool_making_agent = MainAgentWithTools(name="ToolCreator",
+                                            system_message=system_prompt_scribe,
+                                            model=ChatOpenAI(
+                                                model_name='gpt-4o-mini',
+                                                streaming=True,
+                                                temperature=0.0,
+                                                api_key=api_key,
+                                                callbacks=[StreamingStdOutCallbackHandler()]),
+                                            tools=tools)
+    else:
+        pass
 
 if not firebase_admin._apps:
     encoded_creds = os.getenv("FIREBASE_CREDENTIALS")
@@ -462,6 +475,11 @@ def home():
 
 
 def interaction_page():
+    # Check if the user has configured their OpenAI API key
+    if "openai_api_key" not in st.session_state or not st.session_state["openai_api_key"]:
+        st.error("⚠️ Please configure your OpenAI API key first. Go to the 'OpenAI Key' page to set it up.")
+        return  # Exit the function early if the API key is not set
+
     if 'submitted' in st.session_state:
         st.session_state['submitted'] = False
 
@@ -509,6 +527,38 @@ def interaction_page():
     st.markdown("<br><br>", unsafe_allow_html=True)
 
     st.markdown("<h4>Powered by Pool of Tools</h4>", unsafe_allow_html=True)
+
+def display_openAI_UI():
+    """
+    Renders a UI for the user to enter their personal OpenAI API key.
+    Stores the key in Streamlit session state for usage during the session.
+    """
+    st.title("Configure OpenAI API Key")
+    st.write(
+        "To use OpenAI services, please enter your personal OpenAI API key below. "
+        "Your key will be used securely during this session and not stored permanently."
+    )
+    if "openai_api_key" not in st.session_state:
+        st.session_state["openai_api_key"] = ""
+
+    st.session_state["openai_api_key"] = st.text_input(
+        "Enter your OpenAI API Key:",
+        value=st.session_state["openai_api_key"],
+        type="password"
+    )
+
+    if st.button("Save API Key"):
+        if st.session_state["openai_api_key"]:
+            st.success("API key saved successfully! You can now use it in other tools.")
+        else:
+            st.warning("Please enter a valid API key.")
+
+    if st.button("Clear API Key"):
+        st.session_state["openai_api_key"] = ""
+        st.info("API key cleared.")
+
+    if st.checkbox("Show stored key (for debugging purposes)"):
+        st.write(f"Stored API Key: {st.session_state['openai_api_key'] or 'None'}")
 
 
 def display_tools(user_uid):
@@ -598,7 +648,7 @@ def main():
 
             choose = option_menu(
                 "Menu",
-                ["Home", "Interaction", "Tools"],
+                ["Home", "Interaction", "Tools", "OpenAI_key"],
                 icons=['house', 'robot', 'tools'],
                 menu_icon="cast",
                 default_index=0
@@ -622,6 +672,10 @@ def main():
         elif st.session_state['page'] == 'Tools':
             logging.info("Rendering 'Tools' page.")
             display_tools(user_email)
+        elif st.session_state['page'] == "OpenAI_key":
+            logging.info("Rendering 'OpenAI key' page.")
+            display_openAI_UI()
+
 
 def set_login():
     st.session_state['log_in'] = True
